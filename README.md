@@ -3,7 +3,7 @@
 
 **Current Status:** In Progress. This project is being completed as part of an academic AIML course at Victoria University of Wellington. The progress of this project can be viewed in the milestones section of the issues tab.
 
-[**Full Design Document & Literature Review**](https://drive.google.com/file/d/1x1CswMAsQuCIpw53Hki6htUbeyi4HmPq/view?usp=sharing)
+[**Full Design Document & Literature Review**](docs/DesignDoc&LitReview.pdf)
 
 ### Overview
 Wav2Lip and similar generative lip-sync models are trained and evaluated almost exclusively on English data/metrics, even when the target language isn't English. This has lead to performance degradation on phonetically distant languages. Heavier cross-lingual architectures have emerged to close this gap (MuEx, DiffDub), but it has yet to be tested whether this complexity is actually necessary, or whether light-weight, language specific fine-tuning gets you most of the way there.
@@ -16,7 +16,7 @@ This project tests that directly; fine-tuning the Wav2Lip model on Korean data (
 3. **Compare:** Compare the fine tuned model against both baseline and reported MuEx/DiffDub numbers
 4. **Stretch Goal:** Develop a phoneme level diagnostic metric to localise failures beyond aggregate sync scores
 
-Full reasoning behind each design decision viewable on the [design document](https://drive.google.com/file/d/1x1CswMAsQuCIpw53Hki6htUbeyi4HmPq/view?usp=sharing)
+Full reasoning behind each design decision viewable on the [design document](docs/DesignDoc&LitReview.pdf)
 
 ### Author
 James Brooker - jamesabrooker@gmail.com
