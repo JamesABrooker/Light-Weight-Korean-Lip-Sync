@@ -216,3 +216,22 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# --- Project-specific additions ---
+
+# JetBrains
+.idea/
+
+# OS
+.DS_Store
+
+# Dataset artifacts — large binaries, not for version control
+kmsav_pilot/
+kmsav_asd_v0.2/
+raw/
+cropped/
+*.mp4
+*.wav
+*.jpg
+*.jpeg
