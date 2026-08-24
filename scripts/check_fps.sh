@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# check_fps.sh — flag clips with non-25fps or variable frame rate
-CSV="$1"  # your manifest, e.g. kmsav_pilot_manifest.csv
+# check_fps.sh - flag clips with non-25fps or variable frame rate
+CSV="$1"
 
 tail -n +2 "$CSV" | while IFS=',' read -r clip_id source_video_id domain split duration clip_path rest; do
   path="$clip_path"
