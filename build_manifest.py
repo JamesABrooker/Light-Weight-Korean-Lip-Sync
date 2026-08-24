@@ -81,13 +81,14 @@ def main():
                 "duration_sec": round(duration, 2),
                 "clip_path": str(clip_path),
                 "transcript": transcript,
+                "dataset": "KMSAV (interim, not OLKAVS)",
             })
 
     OUTPUT_CSV.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_CSV, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=[
             "clip_id", "source_video_id", "domain", "split",
-            "duration_sec", "clip_path", "transcript"
+            "duration_sec", "clip_path", "transcript", "dataset"
         ])
         writer.writeheader()
         writer.writerows(rows)
