@@ -20,7 +20,7 @@ Full reasoning behind each design decision viewable on the [design document](doc
 
 ### Wav2Lip Model
 
-This project uses Wav2Lip (Prajwal et al., ACM MM 2020) for lip-sync inference, used here under its personal/research/non-commercial license. Face detection uses their bundled S3FD implementation.
+This project uses Wav2Lip (Prajwal et al., ACM MM 2020) for lip-sync inference, used here under its personal/research/non-commercial license. 
 
 Prajwal, K.R., Mukhopadhyay, R., Namboodiri, V.P., Jawahar, C.V. "A Lip Sync Expert Is All You Need for Speech to Lip Generation In the Wild." ACM Multimedia 2020.
 
