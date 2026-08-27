@@ -5,6 +5,9 @@ Build the final clip manifest from cropped KMSAV output.
 Scans kmsav_pilot/cropped/<video_id>/utts/ for *.mp4 clips, measures duration
 via ffprobe, filters to the 2-10s range (per issue acceptance criteria), and
 writes a manifest CSV mapping each kept clip back to its source video metadata.
+
+Run:
+python3 build_manifest.py
 """
 import csv
 import subprocess
