@@ -8,6 +8,7 @@ mkdir -p "$RAW_DIR" "$CROP_DIR"
 
 # Clean out old cropped failure clips
 rm -rf "$CROP_DIR"/*
+rm -f "$RAW_DIR"/*.mp4 "$RAW_DIR"/*.wav
 
 if [ ! -d "$ASD_DIR" ]; then
   curl -L -o kmsav_asd_v0.2.zip \
@@ -18,7 +19,7 @@ fi
 while IFS=, read -r -u 3 id domain participants len_sec split; do
   echo "=== Processing $id ($domain, ${len_sec}s) ==="
 
-  # 1. Download ONLY if raw video doesn't exist yet
+  # Download ONLY if raw video doesn't exist yet
   if [ ! -f "$RAW_DIR/$id.mp4" ]; then
     yt-dlp --no-simulate -f 'bestvideo[height<=1080]+bestaudio/best[height<=1080]/best' \
       -o "$RAW_DIR/%(id)s.%(ext)s" \
@@ -27,18 +28,23 @@ while IFS=, read -r -u 3 id domain participants len_sec split; do
       || { echo "SKIP $id: download failed"; continue; }
   fi
 
-  # 2. Rescale raw video to 1920x1080 matching KMSAV bounding box dimensions
-  if [ ! -f "$RAW_DIR/${id}_1080p.mp4" ]; then
-    echo "Rescaling $id to 1080p frame size..."
-    ffmpeg -y -i "$RAW_DIR/$id.mp4" -vf "scale=1920:1080" -c:a copy "$RAW_DIR/${id}_rescaled.mp4" < /dev/null
-    mv "$RAW_DIR/${id}_rescaled.mp4" "$RAW_DIR/$id.mp4"
-  fi
-
   # Extract audio
   ffmpeg -y -i "$RAW_DIR/$id.mp4" -qscale:a 0 -ac 1 -vn -ar 16000 \
     "$RAW_DIR/$id.wav" < /dev/null
 
-  # 3. Crop utterances using the newly scaled 1080p raw video
+  # Determine this video's own ASD-declared frame size, then match it
+  asd_txt=$(find "$ASD_DIR/$id" -iname "??????.txt" | head -n1)
+  if [ -z "$asd_txt" ]; then
+    echo "SKIP $id: no ASD info found"; continue
+  fi
+  read -r img_w img_h <<< "$(grep -m1 '# ImageSize' "$asd_txt" | cut -d: -f2)"
+
+  echo "Rescaling $id to match ASD ImageSize ${img_w}x${img_h}..."
+  ffmpeg -y -i "$RAW_DIR/$id.mp4" -vf "scale=${img_w}:${img_h}" -c:a copy \
+    "$RAW_DIR/${id}_rescaled.mp4" < /dev/null
+  mv "$RAW_DIR/${id}_rescaled.mp4" "$RAW_DIR/$id.mp4"
+
+  # Crop
   python3 ../kmsav/utils/crop_video.py \
     --asdinfo-dir "$ASD_DIR" \
     --save-root "$CROP_DIR" \
