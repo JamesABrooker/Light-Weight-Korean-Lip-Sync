@@ -235,3 +235,5 @@ cropped/
 *.wav
 *.jpg
 *.jpeg
+*.zip
+wav2lip-korean/kmsav_*.zip
