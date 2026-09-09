@@ -18,6 +18,12 @@ This project tests that directly; fine-tuning the Wav2Lip model on Korean data (
 
 Full reasoning behind each design decision viewable on the [design document](docs/DesignDoc&LitReview.pdf)
 
+### Wav2Lip Model
+
+This project uses Wav2Lip (Prajwal et al., ACM MM 2020) for lip-sync inference, used here under its personal/research/non-commercial license. 
+
+Prajwal, K.R., Mukhopadhyay, R., Namboodiri, V.P., Jawahar, C.V. "A Lip Sync Expert Is All You Need for Speech to Lip Generation In the Wild." ACM Multimedia 2020.
+
 ### Dataset
 
 Moved away from original OLKAVS dataset plan, due to needing to be a Korean national, [view log](logs/daily/2026-08-21.md)
