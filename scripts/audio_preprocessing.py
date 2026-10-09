@@ -45,6 +45,10 @@ HPARAMS = dict(
     ref_level_db=20,
     preemphasis_val=0.97,
     preemphasize=True,
+    signal_normalization=True,
+    allow_clipping_in_normalization=True,
+    symmetric_mels=True,
+    max_abs_value=4.0,
 )
 
 
@@ -91,15 +95,6 @@ def _amp_to_db(x, min_level_db):
     min_level = np.exp(min_level_db / 20 * np.log(10))
     return 20 * np.log10(np.maximum(min_level, x))
 
-
-HPARAMS = dict(
-    ...,
-    signal_normalization=True,
-    allow_clipping_in_normalization=True,
-    symmetric_mels=True,
-    max_abs_value=4.0,
-)
-
 def _normalize(S, hp):
     m, mn = hp["max_abs_value"], hp["min_level_db"]
     if hp["symmetric_mels"]:
@@ -119,7 +114,7 @@ def melspectrogram(wav, hp=HPARAMS):
         hp["sample_rate"], hp["n_fft"], hp["num_mels"], hp["fmin"], hp["fmax"]
     )
     S = _amp_to_db(_linear_to_mel(np.abs(D), mel_basis), hp["min_level_db"]) - hp["ref_level_db"]
-    return _normalize(S, hp["min_level_db"])
+    return _normalize(S, hp)
 
 
 # verification against expected config
