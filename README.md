@@ -18,6 +18,16 @@ This project tests that directly; fine-tuning the Wav2Lip model on Korean data (
 
 Full reasoning behind each design decision viewable on the [design document](docs/DesignDoc&LitReview.pdf)
 
+### Running the script
+#### Required Libraries:
+
+Install the required libraries:
+
+\```bash
+pip install librosa soundfile scipy numpy matplotlib pandas
+\```
+
+
 ### Wav2Lip Model
 
 This project uses Wav2Lip (Prajwal et al., ACM MM 2020) for lip-sync inference, used here under its personal/research/non-commercial license. 
