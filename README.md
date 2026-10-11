@@ -24,7 +24,7 @@ Full reasoning behind each design decision viewable on the [design document](doc
 Install the required libraries:
 
 \```bash
-pip install librosa soundfile scipy numpy matplotlib
+pip install librosa soundfile scipy numpy matplotlib pandas
 \```
 
 

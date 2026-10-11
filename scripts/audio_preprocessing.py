@@ -15,10 +15,23 @@ Usage:
     # Batch, from a directory of clips
     python audio_pipeline.py batch path/to/clips_dir/ --out-dir out/
 
-    # Spot-check: plot a mel next to a reference mel (e.g. from LRS2)
+    # Spot-check: plot a mel next to a reference mel (e.g. a golden mel from Wav2Lip’s audio.py)
     python audio_pipeline.py spotcheck out/clip.npy --reference ref_mel.npy
 
-Requires: librosa, soundfile, numpy, scipy, matplotlib (for spotcheck only)
+    # Every accepted clip in a reviewed manifest CSV (needs a clip_path column;
+    # optional clip_id column is used for output names)
+    python scripts/audio_preprocessing.py manifest path/to/manifest.csv --out-dir out/ \
+        [--clip-root path/to/clips/]
+
+    # Spot-check: plot a mel next to a reference mel
+    # (e.g. a golden mel from Wav2Lip's audio.py)
+    python scripts/audio_preprocessing.py spotcheck out/mels/clip.npy \
+        --reference tests/fixtures/english_sample_mel.npy
+
+Outputs: <out-dir>/wav/<name>.wav and <out-dir>/mels/<name>.npy (shape 80 x T).
+batch and manifest exit non-zero if any file fails.
+
+Requires: librosa, soundfile, numpy, scipy, pandas, matplotlib (for spotcheck only)
 """
 
 import argparse
@@ -123,6 +136,9 @@ def verify_hparams(hp=HPARAMS):
     expected = dict(
         sample_rate=16000, n_fft=800, hop_size=200, win_size=800,
         num_mels=80, fmin=55, fmax=7600,
+        min_level_db=-100, ref_level_db=20,
+        preemphasis_val=0.97, preemphasize=True,
+        symmetric_mels=True, max_abs_value=4.0,
     )
     mismatches = {k: (hp[k], v) for k, v in expected.items() if hp[k] != v}
     if mismatches:
@@ -138,6 +154,8 @@ def check_mel_shape(mel, wav_len, hp=HPARAMS):
     ok = abs(expected_frames - actual_frames) <= 2  # librosa framing/padding slack
     status = "OK" if ok else "MISMATCH"
     print(f"mel shape: {mel.shape} (expected ~{hp['num_mels']} x {expected_frames}) -> {status}")
+    if not ok:
+        raise ValueError(f"mel frame count {actual_frames} != expected ~{expected_frames}")
     return ok
 
 
@@ -165,11 +183,17 @@ def process_batch(in_dir, out_dir):
     if not files:
         print(f"No audio/video files found in {in_dir}")
         return
+    n_ok, n_fail = 0, 0
     for f in files:
         try:
             process_file(os.path.join(in_dir, f), out_dir)
+            n_ok += 1
         except Exception as e:
             print(f"[ERROR] {f}: {e}", file=sys.stderr)
+            n_fail += 1
+    print(f"Done. {n_ok} succeeded, {n_fail} failed, {len(files)} total.")
+    if n_fail:
+        sys.exit(1)
 
 
 def process_manifest(manifest_path, out_dir, clip_root=None):
