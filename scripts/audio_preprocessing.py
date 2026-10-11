@@ -43,6 +43,7 @@ import pandas as pd
 import librosa
 import soundfile as sf
 from scipy import signal
+import subprocess
 
 # Hyperparameters — must exactly match Wav2Lip's hparams.py.
 # Do not change these without also retraining/re-evaluating SyncNet.
@@ -66,9 +67,20 @@ HPARAMS = dict(
 
 
 # audio extraction / resampling
+VIDEO_EXTS = (".mp4", ".mov", ".mkv", ".m4a")
+
+
 def load_and_resample(path, sr=HPARAMS["sample_rate"]):
-    """Load any audio/video file, downmix to mono, resample to 16kHz."""
-    y, orig_sr = librosa.load(path, sr=sr, mono=True)
+    """Load any audio/video file, downmix to mono, resample to 16kHz.
+    Video containers are decoded with ffmpeg (libsndfile can't read them)."""
+    if path.lower().endswith(VIDEO_EXTS):
+        cmd = ["ffmpeg", "-v", "error", "-i", path, "-vn",
+               "-ac", "1", "-ar", str(sr), "-f", "f32le", "-"]
+        res = subprocess.run(cmd, capture_output=True)
+        if res.returncode != 0 or not res.stdout:
+            raise RuntimeError(f"ffmpeg failed on {path}: {res.stderr.decode().strip()}")
+        return np.frombuffer(res.stdout, dtype=np.float32).copy()
+    y, _ = librosa.load(path, sr=sr, mono=True)
     return y
 
 
@@ -214,7 +226,7 @@ def process_manifest(manifest_path, out_dir, clip_root=None):
 
     n_ok, n_fail = 0, 0
     for _, row in df.iterrows():
-        rel_path = row["clip_path"]
+        rel_path = os.path.splitext(row["clip_path"])[0] + ".wav"
         full_path = os.path.join(base_dir, rel_path)
         name = str(row["clip_id"]) if has_id else os.path.splitext(os.path.basename(rel_path))[0]
         try:
