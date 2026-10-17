@@ -34,6 +34,9 @@ pytest tests/ -v              # checks audio preprocessing matches Wav2Lip exact
 
 This project uses Wav2Lip (Prajwal et al., ACM MM 2020) for lip-sync inference, used here under its personal/research/non-commercial license.
 
+Pretrained weights (`wav2lip.pth`, `wav2lip_gan.pth`, `lipsync_expert.pth`) are not included. Download them into `checkpoints/`:
+`hf download Nekochu/Wav2Lip wav2lip.pth wav2lip_gan.pth lipsync_expert.pth --local-dir checkpoints`
+
 Prajwal, K.R., Mukhopadhyay, R., Namboodiri, V.P., Jawahar, C.V. "A Lip Sync Expert Is All You Need for Speech to Lip Generation In the Wild." ACM Multimedia 2020.
 
 ### Korean Dataset
