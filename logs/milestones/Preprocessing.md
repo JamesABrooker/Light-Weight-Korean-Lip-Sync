@@ -109,6 +109,13 @@ filelists/kmsav/{train,val,test}.txt      # one "<video_id>/<utt_id>" per line
 | 5 | Paper's benchmark: ~14K randomly paired audio-video samples | Own speaker-disjoint split of 772 clips | Subset size chosen for feasibility on one GPU |
 | 6 | Audio extracted from video with ffmpeg | KMSAV's separate per-utterance `.wav` files | That is how KMSAV distributes audio. Mel recipe itself is unchanged and parity-tested |
 
+- **Crop framing was verified against the sync expert** using [`scripts/check_sync_expert.py`](../../scripts/check_sync_expert.py)
+  and [`scripts/s3fd_crop.py`](../../scripts/s3fd_crop.py). The expert only sees the lower half of a
+  96×96 face, so loose framing pushes the mouth out of view. KMSAV face-track crops scored the same as
+  S3FD crops (aligned P_sync 0.502 vs 0.509), but LRS3's face tracks scored far lower than S3FD crops
+  (0.174 vs 0.789). KMSAV is therefore used as cropped, while LRS3 is S3FD-cropped
+  (`inference.py` runs S3FD by default; no fixed `--box`). Details: [log](../daily/2026-10-17-2.md).
+
 Deviations from the original **proposal**: OLKAVS → KMSAV (access), LRS2 → LRS3 (licence), planned
 change of Wav2Lip to 30 fps dropped (KMSAV clips are 25 fps, and 30 fps would misalign the frozen
 expert), ~500 → 772 clips.
