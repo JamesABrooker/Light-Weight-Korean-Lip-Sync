@@ -34,7 +34,7 @@ This project uses Wav2Lip (Prajwal et al., ACM MM 2020) for lip-sync inference, 
 
 Prajwal, K.R., Mukhopadhyay, R., Namboodiri, V.P., Jawahar, C.V. "A Lip Sync Expert Is All You Need for Speech to Lip Generation In the Wild." ACM Multimedia 2020.
 
-### Dataset
+### Korean Dataset
 
 Moved away from original OLKAVS dataset plan, due to needing to be a Korean national, [view log](logs/daily/2026-08-21.md)
 
@@ -53,6 +53,33 @@ Now using KMSAV dataset, which is uses a Creative Commons licence.
 
 The KMSAV dataset used in this project is licensed under CC-BY-NC-SA 4.0 by ETRI and is not redistributed here. See [dataset link](https://github.com/etri/kmsav)
 for terms.
+
+### English Evaluation Dataset
+
+Moved away from the original LRS2 plan, as it requires an institutional licence agreement with the BBC
+that could not be obtained within the project timeframe, [view log](logs/daily/2026-10-11.md)
+
+Now using LRS3-TED, which shares LRS2's in-the-wild domain and 25 fps frame rate. Only a fixed
+100-clip subset of the trainval split is used, for evaluating English performance before and after
+Korean fine-tuning (clip IDs in `data/lrs3_eval_ids.txt`).
+
+> Triantafyllos Afouras, Joon Son Chung, and Andrew Zisserman. "LRS3-TED: a large-scale dataset for visual speech recognition." *arXiv preprint arXiv:1809.00496*, 2018.
+
+```bibtex
+@article{afouras2018lrs3,
+    title={LRS3-TED: a large-scale dataset for visual speech recognition},
+    author={Afouras, Triantafyllos and Chung, Joon Son and Zisserman, Andrew},
+    journal={arXiv preprint arXiv:1809.00496},
+    year={2018}
+}
+```
+
+The LRS3 dataset is licensed under CC BY 4.0. The underlying video content is from TED and TEDx talks
+and remains subject to TED's terms of use and the CC BY-NC-ND 4.0 licence, so it is used here for
+non-commercial research only. No LRS3 video or audio, original or generated, is redistributed in this
+repository. The official LRS3 distribution has been discontinued, so the data was obtained from the
+verified Hugging Face mirror [TheNHz/ellipsis-lrs3-raw](https://huggingface.co/datasets/TheNHz/ellipsis-lrs3-raw).
+See the [original licence](https://mm.kaist.ac.kr/datasets/lip_reading/files/license.txt) for terms.
 
 ### Author
 James Brooker - jamesabrooker@gmail.com
