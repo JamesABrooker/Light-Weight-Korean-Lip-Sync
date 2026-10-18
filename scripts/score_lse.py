@@ -4,8 +4,9 @@ score_lse.py
 Computes LSE-D and LSE-C (Prajwal et al., 2020) using the pretrained SyncNet
 from syncnet_python (Chung & Zisserman, 2016), following Wav2Lip's evaluation:
 run_pipeline.py (face detection + tracking), then run_syncnet.py, per video.
-  LSE-D = SyncNet min distance (lower is better)
-  LSE-C = SyncNet confidence   (higher is better)
+  LSE-D     = SyncNet min distance (lower is better)
+  LSE-C     = SyncNet confidence   (higher is better)
+  av_offset = SyncNet's estimated audio-video offset in frames (0 = in sync)
 averaged over the face tracks found in each clip.
 
 Modes:
@@ -13,7 +14,7 @@ Modes:
   real:      scores the original, unedited test clips (reference row)
 
 Per-clip scores are written to results/metrics/ (committed); re-running skips
-clips already scored.
+clips already scored successfully.
 
 Usage (from wav2lip-korean/, in .venv-w2l):
     .venv-w2l/bin/python scripts/score_lse.py generated kmsav --limit 3
@@ -35,6 +36,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SYNC = os.path.join(ROOT, "external", "syncnet_python")
 RE_DIST = re.compile(r"Min dist:\s*([-\d.]+)")
 RE_CONF = re.compile(r"Confidence:\s*([-\d.]+)")
+RE_OFF = re.compile(r"AV offset:\s*(-?\d+)")
+FIELDS = ["name", "lse_d", "lse_c", "n_tracks", "av_offset", "status", "error"]
 
 
 def generated_videos(tag, dataset):
@@ -69,11 +72,20 @@ def score_one(video, work):
         out = p2.stdout + p2.stderr
         dists = [float(x) for x in RE_DIST.findall(out)]
         confs = [float(x) for x in RE_CONF.findall(out)]
+        offs = [int(x) for x in RE_OFF.findall(out)]
         if not dists or len(dists) != len(confs):
             raise RuntimeError("no face track scored")
-        return statistics.mean(dists), statistics.mean(confs), len(dists)
+        off = f"{statistics.mean(offs):.2f}" if offs else ""
+        return statistics.mean(dists), statistics.mean(confs), len(dists), off
     finally:
         shutil.rmtree(data_dir, ignore_errors=True)
+
+
+def write_csv(path, rows):
+    with open(path, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=FIELDS, restval="", extrasaction="ignore")
+        w.writeheader()
+        w.writerows(rows)
 
 
 def main():
@@ -94,10 +106,10 @@ def main():
         with open(out_csv) as f:
             done = {r["name"]: r for r in csv.DictReader(f) if r["status"] == "ok"}
 
+    rows = list(done.values())
     with tempfile.TemporaryDirectory() as tmp:
         videos = (generated_videos(args.tag, args.dataset) if args.mode == "generated"
                   else real_videos(args.dataset, tmp))
-        rows = list(done.values())
         n = 0
         for name, path in videos:
             if args.limit and n >= args.limit:
@@ -106,19 +118,16 @@ def main():
             if name in done:
                 continue
             try:
-                d, c, k = score_one(path, tmp)
+                d, c, k, off = score_one(path, tmp)
                 row = {"name": name, "lse_d": f"{d:.4f}", "lse_c": f"{c:.4f}",
-                       "n_tracks": k, "status": "ok", "error": ""}
+                       "n_tracks": k, "av_offset": off, "status": "ok", "error": ""}
             except Exception as e:
                 row = {"name": name, "lse_d": "", "lse_c": "", "n_tracks": 0,
-                       "status": "failed", "error": str(e)[:200]}
+                       "av_offset": "", "status": "failed", "error": str(e)[:200]}
                 print(f"[FAIL] {name}: {e}", file=sys.stderr)
             rows.append(row)
-            with open(out_csv, "w", newline="") as f:
-                w = csv.DictWriter(f, fieldnames=list(row.keys()))
-                w.writeheader()
-                w.writerows(rows)
-            print(f"{n} {name} {row['status']} D={row['lse_d']} C={row['lse_c']}")
+            write_csv(out_csv, rows)
+            print(f"{n} {name} {row['status']} D={row['lse_d']} C={row['lse_c']} off={row['av_offset']}")
 
     ok = [r for r in rows if r["status"] == "ok"]
     if ok:
@@ -128,6 +137,9 @@ def main():
         print(f"\n{label} / {args.dataset}: {len(ok)} scored, {len(rows) - len(ok)} failed")
         print(f"LSE-D = {statistics.mean(ds):.3f} ± {sd(ds):.3f}   (lower is better)")
         print(f"LSE-C = {statistics.mean(cs):.3f} ± {sd(cs):.3f}   (higher is better)")
+        offs = [float(r["av_offset"]) for r in ok if r.get("av_offset")]
+        if offs:
+            print(f"AV offset = {statistics.mean(offs):.2f} ± {sd(offs):.2f} frames (0 = in sync)")
     print(f"Per-clip scores -> {out_csv}")
 
 
