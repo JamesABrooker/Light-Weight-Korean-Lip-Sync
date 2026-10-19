@@ -1,3 +1,7 @@
+import os, sys
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(ROOT, "external", "Wav2Lip"))
+
 from os.path import dirname, join, basename, isfile
 from tqdm import tqdm
 
@@ -15,7 +19,16 @@ import numpy as np
 from glob import glob
 
 import os, random, cv2, argparse
-from hparams import hparams, get_image_list
+import sys
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(ROOT, "external", "Wav2Lip"))
+from hparams import hparams
+
+
+def get_image_list(data_root, split):
+    """Read our speaker-disjoint KMSAV filelists (filelists/kmsav/<split>.txt)."""
+    with open(os.path.join(ROOT, "filelists", "kmsav", f"{split}.txt")) as f:
+        return [os.path.join(data_root, line.strip()) for line in f if line.strip()]
 
 parser = argparse.ArgumentParser(description='Code to train the Wav2Lip model without the visual quality discriminator')
 
@@ -26,7 +39,24 @@ parser.add_argument('--syncnet_checkpoint_path', help='Load the pre-trained Expe
 
 parser.add_argument('--checkpoint_path', help='Resume from this checkpoint', default=None, type=str)
 
+parser.add_argument('--seed', type=int, default=0)
+parser.add_argument('--max_steps', type=int, default=6000)
+parser.add_argument('--interval', type=int, default=500, help='eval + checkpoint every N steps')
+parser.add_argument('--lr', type=float, default=1e-4)
+parser.add_argument('--syncnet_wt', type=float, default=0.01)
+parser.add_argument('--num_workers', type=int, default=4)
 args = parser.parse_args()
+
+import numpy as np
+random.seed(args.seed)
+np.random.seed(args.seed)
+torch.manual_seed(args.seed)
+torch.cuda.manual_seed_all(args.seed)
+hparams.set_hparam('initial_learning_rate', args.lr)
+hparams.set_hparam('syncnet_wt', args.syncnet_wt)
+hparams.set_hparam('num_workers', args.num_workers)
+hparams.set_hparam('eval_interval', args.interval)
+hparams.set_hparam('checkpoint_interval', args.interval)
 
 
 global_step = 0
@@ -234,6 +264,8 @@ def train(device, model, train_data_loader, test_data_loader, optimizer,
                 save_sample_images(x, g, gt, global_step, checkpoint_dir)
 
             global_step += 1
+            if global_step >= args.max_steps:
+                return
             cur_session_steps = global_step - resumed_step
 
             running_l1_loss += l1loss.item()
@@ -260,7 +292,7 @@ def train(device, model, train_data_loader, test_data_loader, optimizer,
         
 
 def eval_model(test_data_loader, global_step, device, model, checkpoint_dir):
-    eval_steps = 700
+    eval_steps = 100
     print('Evaluating for {} steps'.format(eval_steps))
     sync_losses, recon_losses = [], []
     step = 0
@@ -288,6 +320,8 @@ def eval_model(test_data_loader, global_step, device, model, checkpoint_dir):
                 averaged_recon_loss = sum(recon_losses) / len(recon_losses)
 
                 print('L1: {}, Sync loss: {}'.format(averaged_recon_loss, averaged_sync_loss))
+                with open(os.path.join(checkpoint_dir, "val_log.csv"), "a") as f:
+                    f.write(f"{global_step},{averaged_recon_loss:.5f},{averaged_sync_loss:.5f}\n")
 
                 return averaged_sync_loss
 
@@ -360,7 +394,7 @@ if __name__ == "__main__":
                            lr=hparams.initial_learning_rate)
 
     if args.checkpoint_path is not None:
-        load_checkpoint(args.checkpoint_path, model, optimizer, reset_optimizer=False)
+        load_checkpoint(args.checkpoint_path, model, optimizer, reset_optimizer=True, overwrite_global_states=False)
         
     load_checkpoint(args.syncnet_checkpoint_path, syncnet, None, reset_optimizer=True, overwrite_global_states=False)
 
