@@ -47,6 +47,8 @@ def face_window(frames, start):
 
 
 def mel_window(spec, start_frame):
+    if start_frame < 0:
+        return None
     i = int(80.0 * (start_frame / float(FPS)))
     m = spec[i:i + MEL_STEP, :]
     if m.shape[0] != MEL_STEP:
