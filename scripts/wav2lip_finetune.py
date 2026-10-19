@@ -399,7 +399,7 @@ if __name__ == "__main__":
     load_checkpoint(args.syncnet_checkpoint_path, syncnet, None, reset_optimizer=True, overwrite_global_states=False)
 
     if not os.path.exists(checkpoint_dir):
-        os.mkdir(checkpoint_dir)
+        os.makedirs(checkpoint_dir, exist_ok=True)
 
     # Train!
     train(device, model, train_data_loader, test_data_loader, optimizer,

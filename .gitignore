@@ -242,3 +242,4 @@ wav2lip-korean/kmsav_*.zip
 checkpoints/
 data/results/
 data/results/external/syncnet_python/
+runs/
