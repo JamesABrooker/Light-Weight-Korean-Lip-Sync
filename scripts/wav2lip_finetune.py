@@ -214,9 +214,6 @@ def cosine_loss(a, v, y):
     return loss
 
 device = torch.device("cuda" if use_cuda else "cpu")
-syncnet = SyncNet().to(device)
-for p in syncnet.parameters():
-    p.requires_grad = False
 
 recon_loss = nn.L1Loss()
 def get_sync_loss(mel, g):
@@ -370,6 +367,9 @@ def load_checkpoint(path, model, optimizer, reset_optimizer=False, overwrite_glo
     return model
 
 if __name__ == "__main__":
+    syncnet = SyncNet().to(device)
+    for p in syncnet.parameters():
+        p.requires_grad = False
     checkpoint_dir = args.checkpoint_dir
 
     # Dataset and Dataloader setup
