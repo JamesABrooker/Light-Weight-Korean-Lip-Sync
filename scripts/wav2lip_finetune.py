@@ -261,7 +261,7 @@ def train(device, model, train_data_loader, test_data_loader, optimizer,
                 save_sample_images(x, g, gt, global_step, checkpoint_dir)
 
             global_step += 1
-            if global_step >= args.max_steps:
+            if global_step > args.max_steps:
                 return
             cur_session_steps = global_step - resumed_step
 
