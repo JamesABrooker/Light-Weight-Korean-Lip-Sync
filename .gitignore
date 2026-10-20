@@ -243,3 +243,4 @@ checkpoints/
 data/results/
 data/results/external/syncnet_python/
 runs/
+export/
