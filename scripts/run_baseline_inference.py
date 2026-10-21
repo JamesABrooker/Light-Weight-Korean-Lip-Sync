@@ -32,6 +32,7 @@ def main():
     p.add_argument("--tag", default="baseline_wav2lip")
     p.add_argument("--limit", type=int, default=None)
     args = p.parse_args()
+    args.checkpoint = os.path.abspath(args.checkpoint)
 
     with open(os.path.join(ROOT, "filelists", f"eval_pairs_{args.dataset}.csv")) as f:
         rows = list(csv.DictReader(f))
@@ -75,6 +76,8 @@ def main():
             print(f"{i}/{len(rows)} {r['name']} {dt:.1f}s")
 
     print(f"\nDone. {n_ok} ok, {n_fail} failed, {n_skip} skipped. Log -> {log_path}")
+    if n_fail:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
