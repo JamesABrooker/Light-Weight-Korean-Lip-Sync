@@ -1,7 +1,9 @@
 # Light-Weight Korean Lip-Sync
 *This project investigates whether language-specific fine-tuning of the Wav2Lip model can close the cross-lingual lip-sync gap for Korean, or if heavier architecture is actually necessary.*
 
-**Current Status:** In Progress. This project is being completed as part of an academic AIML course at Victoria University of Wellington. The progress of this project can be viewed in the milestones section of the issues tab.
+**Current Status:** Completed.
+
+[**Final Report**](docs/FinalReport.pdf)
 
 [**Full Design Document & Literature Review**](docs/DesignDoc&LitReview.pdf)
 
